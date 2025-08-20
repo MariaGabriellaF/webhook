@@ -1,11 +1,14 @@
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const dialogflow = require('@google-cloud/dialogflow');
 const uuid = require('uuid');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// ✅ Ativa o CORS para permitir requisições do frontend
+app.use(cors());
 
 // Middleware para aceitar JSON
 app.use(bodyParser.json());

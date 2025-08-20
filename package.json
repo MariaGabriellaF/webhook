@@ -1,15 +1,16 @@
 {
   "name": "dialogflow-webhook",
   "version": "1.0.0",
-  "description": "Webhook para conectar p\u00e1gina HTML ao Dialogflow ES",
+  "description": "Webhook para conectar página HTML ao Dialogflow ES",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "body-parser": "^1.20.2",
     "@google-cloud/dialogflow": "^5.4.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "uuid": "^9.0.0"
   },
   "engines": {
