@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chatbot do Macaco‑Prego‑Galego</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b1f17;
+      color: #e9f7ef;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #2ecc71;
+      margin-bottom: 20px;
+      font-size: 28px;
+      text-align: center;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      background-color: #122b20;
+      border: 1px solid #1d3a2d;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #1d3a2d;
+      border-radius: 12px;
+      background-color: #0f211a;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      display: flex;
+      flex-direction: column;
+      margin: 10px 12px;
+      max-width: 80%;
+    }
+    .meta {
+      font-size: 0.75rem;
+      color: #b4dbc4;
+      margin-bottom: 4px;
+    }
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
+      word-wrap: break-word;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .bot {
+      align-self: flex-start;
+    }
+    .bot .bubble {
+      background-color: #153a2b;
+      color: #2ecc71;
+    }
+    .user {
+      align-self: flex-end;
+      text-align: right;
+    }
+    .user .bubble {
+      background-color: #1b5e3a;
+      color: #b4dbc4;
+    }
+    .input-area {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #1d3a2d;
+      border-radius: 12px;
+      background-color: #0f211a;
+      padding: 10px;
+    }
+    textarea {
+      width: 100%;
+      height: 60px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      resize: none;
+      background-color: transparent;
+      color: #e9f7ef;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 8px;
+      padding: 12px 20px;
+      background-color: #2ecc71;
+      color: #062617;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐒 Chat do Macaco‑Prego‑Galego</h1>
+  <div class="chat-container">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <textarea id="userInput" placeholder="Digite sua mensagem..."></textarea>
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    const webhookUrl = 'https://webhook-sapajus.onrender.com/webhook';
+
+    async function sendMessage() {
+      const inputEl = document.getElementById('userInput');
+      const msg = inputEl.value.trim();
+      if (!msg) return;
+
+      appendMessage('user', msg);
+      inputEl.value = '';
+
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg })
+        });
+
+        const data = await response.json();
+        appendMessage('bot', data.reply);
+      } catch (err) {
+        appendMessage('bot', '⚠️ Erro ao conectar com o servidor.');
+      }
+    }
+
+    function appendMessage(role, text) {
+      const container = document.getElementById('messages');
+      const msgWrap = document.createElement('div');
+      msgWrap.className = `message ${role}`;
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const now = new Date();
+      const hora = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      meta.textContent = role === 'user' ? `Você • ${hora}` : `Macaco‑Prego‑Galego • ${hora}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+
+      msgWrap.appendChild(meta);
+      msgWrap.appendChild(bubble);
+      container.appendChild(msgWrap);
+      container.scrollTop = container.scrollHeight;
+    }
+  </script>
+</body>
+</html>
