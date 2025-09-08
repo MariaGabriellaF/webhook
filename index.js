@@ -1,20 +1,23 @@
+// src/index.js (ou index.js na raiz)
 const express = require('express');
-const bodyParser = require('body-parser');
-const dialogflow = require('@google-cloud/dialogflow');
-const uuid = require('uuid');
 const cors = require('cors');
+const dialogflow = require('@google-cloud/dialogflow'); // Dialogflow ES
+const uuid = require('uuid');
 
 const app = express();
-const port = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
 
-// ✅ CORS e JSON
+// Middlewares
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // substitui body-parser
 
-// ✅ Credenciais da conta de serviço (Dialogflow ES)
+// Porta (Render define process.env.PORT)
+const PORT = process.env.PORT || 3000;
+
+// Health checks (evita deploy failed no Render)
+app.get('/', (_, res) => res.status(200).send('ok'));
+app.get('/webhook', (_, res) => res.status(200).send('ok'));
+
+// Credenciais do Dialogflow ES
 const CREDENTIALS = require('./credentials.json');
 const projectId = CREDENTIALS.project_id;
 
@@ -25,9 +28,14 @@ const sessionClient = new dialogflow.SessionsClient({
   },
 });
 
+// Endpoint principal
 app.post('/webhook', async (req, res) => {
   try {
-    const message = String(req.body.message ?? '');
+    const message = typeof req.body?.message === 'string' ? req.body.message : '';
+    if (!message.trim()) {
+      return res.status(400).send('Mensagem não fornecida');
+    }
+
     const sessionId = uuid.v4();
     const sessionPath = sessionClient.projectAgentSessionPath(projectId, sessionId);
 
@@ -44,19 +52,18 @@ app.post('/webhook', async (req, res) => {
     const [response] = await sessionClient.detectIntent(request);
     const result = response.queryResult;
 
-    //Usa exatamente o que está configurado nas Intents (Responses) do Dialogflow
-    const reply = (result.fulfillmentText && result.fulfillmentText.trim())
+    const reply = (result?.fulfillmentText && result.fulfillmentText.trim())
       ? result.fulfillmentText.trim()
       : 'Desculpa, não entendi. Pode tentar de outra forma?';
 
-
-    return res.json({ reply });
+    return res.status(200).json({ reply });
   } catch (error) {
     console.error('Erro ao conectar com Dialogflow:', error);
     return res.status(500).send('Erro interno do servidor');
   }
 });
 
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+// Inicia servidor (Render usa PORT dinâmica)
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
