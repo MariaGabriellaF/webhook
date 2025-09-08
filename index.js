@@ -6,6 +6,9 @@ const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
 
 // ✅ CORS e JSON
 app.use(cors());
@@ -22,7 +25,6 @@ const sessionClient = new dialogflow.SessionsClient({
   },
 });
 
-// ✅ Endpoint que seu front chama
 app.post('/webhook', async (req, res) => {
   try {
     const message = String(req.body.message ?? '');
@@ -42,17 +44,11 @@ app.post('/webhook', async (req, res) => {
     const [response] = await sessionClient.detectIntent(request);
     const result = response.queryResult;
 
-    // 👉 Usa exatamente o que está configurado nas Intents (Responses) do Dialogflow
+    //Usa exatamente o que está configurado nas Intents (Responses) do Dialogflow
     const reply = (result.fulfillmentText && result.fulfillmentText.trim())
       ? result.fulfillmentText.trim()
       : 'Desculpa, não entendi. Pode tentar de outra forma?';
 
-    // Se quiser, você pode também retornar dados extras pro front:
-    // const extras = {
-    //   intent: result.intent?.displayName,
-    //   confidence: result.intentDetectionConfidence,
-    //   parameters: result.parameters?.fields ?? {},
-    // };
 
     return res.json({ reply });
   } catch (error) {
