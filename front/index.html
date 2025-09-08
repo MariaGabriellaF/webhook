@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chatbot do Macaco‑Prego‑Galego</title>
+  <title>Chatbot do Macaco-Prego-Galego</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -61,6 +61,7 @@
       border-radius: 12px;
       word-wrap: break-word;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      white-space: pre-line;  
     }
     .bot {
       align-self: flex-start;
@@ -115,7 +116,7 @@
   </style>
 </head>
 <body>
-  <h1>🐒 Chat do Macaco‑Prego‑Galego</h1>
+  <h1>🐒 Chat do Macaco-Prego-Galego</h1>
   <div class="chat-container">
     <div class="messages" id="messages"></div>
     <div class="input-area">
@@ -158,11 +159,11 @@
       meta.className = 'meta';
       const now = new Date();
       const hora = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      meta.textContent = role === 'user' ? `Você • ${hora}` : `Macaco‑Prego‑Galego • ${hora}`;
+      meta.textContent = role === 'user' ? `Você • ${hora}` : `Macaco-Prego-Galego • ${hora}`;
 
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
-      bubble.textContent = text;
+      bubble.textContent = text;  
 
       msgWrap.appendChild(meta);
       msgWrap.appendChild(bubble);
