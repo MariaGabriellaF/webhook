@@ -7,16 +7,14 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ Ativa o CORS para permitir requisições do frontend
+// ✅ CORS e JSON
 app.use(cors());
-
-// Middleware para aceitar JSON
 app.use(bodyParser.json());
 
-// Carrega as credenciais da conta de serviço
+// ✅ Credenciais da conta de serviço (Dialogflow ES)
 const CREDENTIALS = require('./credentials.json');
-
 const projectId = CREDENTIALS.project_id;
+
 const sessionClient = new dialogflow.SessionsClient({
   credentials: {
     private_key: CREDENTIALS.private_key,
@@ -24,63 +22,42 @@ const sessionClient = new dialogflow.SessionsClient({
   },
 });
 
-// Rota para receber mensagens do frontend
+// ✅ Endpoint que seu front chama
 app.post('/webhook', async (req, res) => {
-  const message = req.body.message;
-  const sessionId = uuid.v4();
-
-  const sessionPath = sessionClient.projectAgentSessionPath(projectId, sessionId);
-
-  const request = {
-    session: sessionPath,
-    queryInput: {
-      text: {
-        text: message,
-        languageCode: 'pt-BR',
-      },
-    },
-  };
-
   try {
-    const responses = await sessionClient.detectIntent(request);
-    const result = responses[0].queryResult;
-    const intent = result.intent.displayName;
+    const message = String(req.body.message ?? '');
+    const sessionId = uuid.v4();
+    const sessionPath = sessionClient.projectAgentSessionPath(projectId, sessionId);
 
-    let reply = '';
+    const request = {
+      session: sessionPath,
+      queryInput: {
+        text: {
+          text: message,
+          languageCode: 'pt-BR',
+        },
+      },
+    };
 
-    switch (intent) {
-      case 'saudacao_menu':
-        reply = `Olá! Eu sou um chatbot que vai te contar mais sobre o *Sapajus flavius*, também conhecido como *macaco-prego-galego*. O que você gostaria de saber?\n\nEscolha uma opção:\n1️⃣ Explicando sobre o macaco-prego-galego\n2️⃣ Onde eles vivem?\n3️⃣ O que eles comem?\n4️⃣ Como preservar essa espécie?\n5️⃣ Quem são seus predadores?`;
-        break;
+    const [response] = await sessionClient.detectIntent(request);
+    const result = response.queryResult;
 
-      case 'opcao_1':
-        reply = '🟢 O macaco-prego-galego (Sapajus flavius) é uma espécie endêmica da Mata Atlântica nordestina, famosa por sua inteligência e uso de ferramentas. Está ameaçado de extinção.';
-        break;
+    // 👉 Usa exatamente o que está configurado nas Intents (Responses) do Dialogflow
+    const reply = (result.fulfillmentText && result.fulfillmentText.trim())
+      ? result.fulfillmentText.trim()
+      : 'Desculpa, não entendi. Pode tentar de outra forma?';
 
-      case 'opcao_2':
-        reply = '🌳 Eles vivem em fragmentos de Mata Atlântica no nordeste do Brasil — como na Paraíba, Pernambuco e Alagoas.';
-        break;
+    // Se quiser, você pode também retornar dados extras pro front:
+    // const extras = {
+    //   intent: result.intent?.displayName,
+    //   confidence: result.intentDetectionConfidence,
+    //   parameters: result.parameters?.fields ?? {},
+    // };
 
-      case 'opcao_3':
-        reply = '🍌 A alimentação deles inclui frutas, sementes, insetos, pequenos animais e ovos. São onívoros e muito adaptáveis.';
-        break;
-
-      case 'opcao_4':
-        reply = '🌱 Para preservar a espécie, é necessário proteger seu habitat, combater o desmatamento e promover educação ambiental.';
-        break;
-
-      case 'opcao_5':
-        reply = '🦅 Os predadores naturais incluem aves de rapina e serpentes, mas os maiores perigos hoje são a caça e o desmatamento causados por humanos.';
-        break;
-
-      default:
-        reply = result.fulfillmentText || 'Desculpa, não entendi. Por favor, escolha uma opção de 1 a 5.';
-    }
-
-    res.json({ reply });
+    return res.json({ reply });
   } catch (error) {
     console.error('Erro ao conectar com Dialogflow:', error);
-    res.status(500).send('Erro interno do servidor');
+    return res.status(500).send('Erro interno do servidor');
   }
 });
 
