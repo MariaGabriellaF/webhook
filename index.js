@@ -18,7 +18,7 @@ app.get('/', (_, res) => res.status(200).send('ok'));
 app.get('/webhook', (_, res) => res.status(200).send('ok'));
 
 // Credenciais do Dialogflow ES
-const CREDENTIALS = require('./credentials.json');
+const CREDENTIALS = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 const projectId = CREDENTIALS.project_id;
 
 const sessionClient = new dialogflow.SessionsClient({
